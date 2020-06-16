@@ -17,6 +17,8 @@ public class NPCController : MonoBehaviour
 
     public Vector2 movement;
 
+    public bool isInteractable;
+
     // Start is called before the first frame update
     void Awake ()
     {
