@@ -18,6 +18,9 @@ public class NPCController : MonoBehaviour
     public Vector2 movement;
 
     public bool isInteractable;
+    public bool isCalmed;
+
+    public Animator anim;
 
     // Start is called before the first frame update
     void Awake ()
@@ -40,16 +43,30 @@ public class NPCController : MonoBehaviour
 
     void MovementDecision ()
     {
-        Vector2 mv = new Vector2 (1, 0);
-        Vector2 mv2 = new Vector2 (1, 1);
-        if (movementIndex++ % 5 == 0) 
-        {
-            mc.PerformMoveNormalized(rb, mv, speed);
-        }
-        else
-        {
-            mc.PerformMoveNormalized(rb, mv2, speed);
-        }
             
+    }
+
+    public void MakeInteractable ()
+    {
+        isInteractable = true;
+        anim.SetBool("isInteractable", true);
+        // Start cooldown to turn the NPC normal again
+        StartCoroutine(InteractableCooldown());
+    }
+
+    public void CalmDown ()
+    {
+        isCalmed = true;
+        anim.SetBool("isCalmed", true);
+    }
+
+    public bool IsInteractable () { return isInteractable; }
+    public bool IsCalmed () { return isCalmed; }
+
+    IEnumerator InteractableCooldown ()
+    {
+        yield return new WaitForSeconds(5f);
+        isInteractable = false;
+        anim.SetBool("isInteractable", false);
     }
 }

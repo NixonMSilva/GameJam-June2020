@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator bombCooldown;
 
+    public LayerMask npcMask;
+
     // Start is called before the first frame update
     void Awake ()
     {
@@ -42,6 +44,13 @@ public class PlayerController : MonoBehaviour
             ThrowSmoke();
             StartCoroutine(CooldownSmoke(smokeCooldownLimit));
         }
+
+        /* If the player presses the key to interact with an NPC, check if that is possible through
+        the respective function */
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            InteractWithNPC();
+        }
     }
 
     void FixedUpdate ()
@@ -57,9 +66,6 @@ public class PlayerController : MonoBehaviour
     void ThrowSmoke ()
     {
         float playerRotation = rb.gameObject.transform.rotation.eulerAngles.z;
-        // Debug.Log("Angle: " + playerRotation);
-        // Debug.Log("Sin: " + Mathf.Sin(playerRotation));
-        // Debug.Log("Cos: " + Mathf.Cos(playerRotation));
         Vector2 direction = new Vector2 (Mathf.Cos(playerRotation * Mathf.Deg2Rad), Mathf.Sin(playerRotation * Mathf.Deg2Rad));
         currentSmokeBomb = Instantiate(smokeBomb, transform.position, transform.rotation);
         currentSmokeBomb.GetComponent<BombController>().playerDirection = direction;
@@ -73,13 +79,21 @@ public class PlayerController : MonoBehaviour
 
     void InteractWithNPC ()
     {
-
+        RaycastHit2D rc = Physics2D.CircleCast((Vector2)transform.position, 2f, Vector2.zero, 2f, npcMask);
+        if (rc)
+        {
+            NPCController npcc = rc.collider.gameObject.GetComponent<NPCController>();
+            if (npcc.IsInteractable())
+            {
+                npcc.CalmDown();
+            }
+        }
+        
     }    
 
     IEnumerator CooldownSmoke (float cooldownTime)
     {
         yield return new WaitForSeconds(cooldownTime);
-        // Debug.Log("Whelp");
         isThrowingSmoke = false;
     }
 }
