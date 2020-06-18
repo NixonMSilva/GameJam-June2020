@@ -146,6 +146,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentOrientation: 0
+  anim: {fileID: 530527471}
 --- !u!114 &6021168930121887379
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,6 +172,7 @@ MonoBehaviour:
   chaseSpeed: 2
   dodgeSpeed: 8
   player: {fileID: 0}
+  isVulnerable: 0
   isStunned: 0
   wallMask:
     serializedVersion: 2

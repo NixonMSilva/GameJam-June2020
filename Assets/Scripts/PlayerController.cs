@@ -31,15 +31,12 @@ public class PlayerController : MonoBehaviour
 
     ContactFilter2D guardFilter;
 
-    public int facingDir;
-
     public LayerMask npcMask;
     public LayerMask guardMask;
 
     // Start is called before the first frame update
     void Awake ()
     {
-        facingDir = 0; // 0 - Down | 1 - Left | 2 - Up | 3 - Right
         isThrowingSmoke = false;
         isSwingingCane = false;
         isCaught = false;
@@ -58,8 +55,6 @@ public class PlayerController : MonoBehaviour
             // Input handling
             movement.x = Input.GetAxisRaw("Horizontal");
             movement.y = Input.GetAxisRaw("Vertical");
-
-            HandleDirection(movement);
 
             isSprinting = Input.GetKey(KeyCode.LeftShift);
 
@@ -173,23 +168,6 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Game Over!");
         canUpdatePlayer = false;
-    }
-
-    void HandleDirection (Vector2 movement)
-    {
-        if (movement.x != 0 && movement.y != 0)
-        {
-            if (movement.y > 0)
-                facingDir = 2;
-            else if (movement.y < 0)
-                facingDir = 0;
-
-            if (movement.x > 0)
-                facingDir = 3;
-            else if (movement.x < 0)
-                facingDir = 1;
-        }
-        
     }
 
     IEnumerator CooldownSmoke (float cooldownTime)
