@@ -48,10 +48,23 @@ public class NPCController : MonoBehaviour
 
     public void MakeInteractable ()
     {
-        isInteractable = true;
-        anim.SetBool("isInteractable", true);
-        // Start cooldown to turn the NPC normal again
-        StartCoroutine(InteractableCooldown());
+        // Layer 10 is for guards
+        if (gameObject.layer == 10)
+        {
+            // In case it's a guard
+            this.GetComponent<GuardController>().isVulnerable = true;
+            anim.SetBool("isStunned", true);
+            StartCoroutine(VulnerableCooldown());
+        }
+        else
+        {
+            // In case it's a regular NPC
+            isInteractable = true;
+            anim.SetBool("isInteractable", true);
+            // Start cooldown to turn the NPC normal again
+            StartCoroutine(InteractableCooldown());
+        }
+        
     }
 
     public void CalmDown ()
@@ -68,5 +81,13 @@ public class NPCController : MonoBehaviour
         yield return new WaitForSeconds(5f);
         isInteractable = false;
         anim.SetBool("isInteractable", false);
+    }
+
+    IEnumerator VulnerableCooldown ()
+    {
+        yield return new WaitForSeconds(5f);
+        this.GetComponent<GuardController>().isVulnerable = false;
+        if (!this.GetComponent<GuardController>().isStunned)
+            anim.SetBool("isStunned", false);
     }
 }

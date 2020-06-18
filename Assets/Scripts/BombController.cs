@@ -23,12 +23,15 @@ public class BombController : MonoBehaviour
     bool exploded = false;
     bool fellDown = false;
 
+    public bool isThrown;
+
     public LayerMask npcMask;
 
     // Start is called before the first frame update
     void Start()
     {
         originalPos = transform.position;
+        isThrown = true;
         StartCoroutine(BecomeSolid(solidnessTimeout));
         StartCoroutine(FallDown());
     }
@@ -37,16 +40,18 @@ public class BombController : MonoBehaviour
     void Update()
     {
         currentPos = transform.position;
-        if ((GetDistanceFromOrigin(currentPos) <= flightRange) && (!fellDown))
+        if ((GetDistanceFromOrigin(currentPos) <= flightRange) && (!fellDown) && (isThrown))
         {
             BombFly();
         }
         else
         {
             if (!exploded)
+            {
+                // Debug.Log("Explodes!");
                 Explosion();
+            }
         }
-        
     }
 
     public void BombFly ()
@@ -64,7 +69,7 @@ public class BombController : MonoBehaviour
         rc = Physics2D.CircleCastAll((Vector2)transform.position, 2f, Vector2.zero, 2f, npcMask);
         foreach (RaycastHit2D cast in rc)
         {
-            Debug.Log(cast.collider.gameObject.name);
+            // Debug.Log(cast.collider.gameObject.name);
             cast.collider.gameObject.GetComponent<NPCController>().MakeInteractable();
         }
         

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -7,8 +8,10 @@ public class PlayerController : MonoBehaviour
 
     bool isSprinting;
     bool isThrowingSmoke;
+    bool isSwingingCane;
 
-    public int smokeCooldownLimit;
+    public float smokeCooldownLimit;
+    public float caneCooldownLimit;
 
     public GameObject smokeBomb;
     GameObject currentSmokeBomb;
@@ -17,16 +20,23 @@ public class PlayerController : MonoBehaviour
 
     public MovementController mc;
 
+    public PolygonCollider2D caneCollider;
+
     Vector2 movement;
 
-    IEnumerator bombCooldown;
+    ContactFilter2D guardFilter;
 
     public LayerMask npcMask;
+    public LayerMask guardMask;
 
     // Start is called before the first frame update
     void Awake ()
     {
-        speed = 2f;
+        isThrowingSmoke = false;
+        isSwingingCane = false;
+        caneCollider = GetComponentInChildren<PolygonCollider2D>();
+        guardFilter.layerMask = guardMask;
+        guardFilter.useLayerMask = true;
     }
 
     // Update is called once per frame
@@ -37,12 +47,25 @@ public class PlayerController : MonoBehaviour
         movement.y = Input.GetAxisRaw("Vertical");
         isSprinting = Input.GetKey(KeyCode.LeftShift);
 
-        /* Check if player hasn't thrown smoke in the last X frames (cooldown time), if he didn't, 
+        /* Check if player hasn't thrown smoke in the last X seconds (cooldown time), if he didn't, 
         then he can throw a new one by pressing the button */
         if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.G))
         {
             ThrowSmoke();
             StartCoroutine(CooldownSmoke(smokeCooldownLimit));
+        }
+        else if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.H))
+        {
+            PlantSmoke();
+            StartCoroutine(CooldownSmoke(smokeCooldownLimit));
+        }
+
+        /* Check if the player hasn't swung the cane in the last X seconds (cooldown time), if he didn't
+        then he can swing the cane again by pressing the button */
+        if (!isSwingingCane && Input.GetKeyDown(KeyCode.F))
+        {
+            SwingCane();
+            StartCoroutine(CooldownCane(caneCooldownLimit));
         }
 
         /* If the player presses the key to interact with an NPC, check if that is possible through
@@ -72,9 +95,30 @@ public class PlayerController : MonoBehaviour
         isThrowingSmoke = true;
     }
 
+    void PlantSmoke ()
+    {
+        currentSmokeBomb = Instantiate(smokeBomb, transform.position, transform.rotation);
+        currentSmokeBomb.GetComponent<BombController>().isThrown = false;
+        isThrowingSmoke = true;
+    }
+
     void SwingCane ()
     {
-
+        Collider2D[] hits = new Collider2D [2];
+        //  ContactFilter2D cf = new ContactFilter2D();
+        isSwingingCane = true;
+        if (caneCollider.IsTouchingLayers(guardMask))
+        {
+            if (caneCollider.OverlapCollider(guardFilter, hits) > 0)
+            {
+                for (int i = 0; i < hits.Length; ++i)
+                {
+                    if (hits[i] != null)
+                        hits[i].GetComponent<GuardController>().GetStunned();
+                }
+                
+            }
+        }
     }
 
     void InteractWithNPC ()
@@ -95,5 +139,12 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(cooldownTime);
         isThrowingSmoke = false;
+    }
+
+    IEnumerator CooldownCane (float cooldownTime)
+    {
+        yield return new WaitForSeconds(cooldownTime);
+        isSwingingCane = false;
+        Debug.Log("Can swing again!");
     }
 }

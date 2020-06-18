@@ -142,10 +142,9 @@ MonoBehaviour:
   rb: {fileID: 7967363082281762777}
   mc: {fileID: 7292162346652930578}
   anim: {fileID: 252644714}
-  exploded: 0
   npcMask:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 1536
 --- !u!114 &7292162346652930578
 MonoBehaviour:
   m_ObjectHideFlags: 0
