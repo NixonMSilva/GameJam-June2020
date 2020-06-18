@@ -8,10 +8,18 @@ public class MovementController : MonoBehaviour
     public int currentOrientation;
     public Animator anim;
 
+    Transform cane;
+
+    bool isPlayer = false;
+
     // Start is called before the first frame update
     void Start ()
     {
-        
+        if (this.gameObject.name == "Player")
+        {
+            isPlayer = true;
+            cane = gameObject.transform.Find("CaneRange");
+        }
     }
 
     // Update is called once per frame
@@ -22,7 +30,7 @@ public class MovementController : MonoBehaviour
 
     public void PerformMove (Rigidbody2D rb, Vector2 movementVector, float speed)
     {
-        AdjustOrientation(movementVector);
+        //AdjustOrientation(movementVector);
         AdjustSpriteOrientation(movementVector);
         rb.MovePosition(rb.position + movementVector * speed * Time.fixedDeltaTime);
         
@@ -47,22 +55,25 @@ public class MovementController : MonoBehaviour
                 currentOrientation = 3;
             else if (movementVector.x < 0)
                 currentOrientation = 1;
+            anim.SetFloat("horizontal", movementVector.x);
+            anim.SetFloat("vertical", movementVector.y);
+            // If it's a player movement, change the cane gizmo
+            if (isPlayer)
+                AdjustOrientation(movementVector, cane);  
         }
-        anim.SetFloat("horizontal", movementVector.x);
-        anim.SetFloat("vertical", movementVector.y);
         anim.SetFloat("speed", movementVector.magnitude);
-        Debug.Log(this.gameObject.name + "'s speed: " + movementVector.magnitude);
+        // Debug.Log(this.gameObject.name + "'s speed: " + movementVector.magnitude);
     }
 
 
-    public void AdjustOrientation (Vector2 movementVector)
+    public void AdjustOrientation (Vector2 movementVector, Transform tr)
     {
         Vector2 movementDirection = movementVector;
         //Debug.Log(movementVector);
         if (movementDirection != Vector2.zero)
         {
             float angle = Mathf.Atan2(movementDirection.y, movementDirection.x) * Mathf.Rad2Deg;
-            this.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            tr.rotation = Quaternion.AngleAxis(angle - 90f, Vector3.forward);
         }
     }
 }
