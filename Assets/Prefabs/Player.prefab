@@ -152,6 +152,7 @@ MonoBehaviour:
     type: 3}
   rb: {fileID: 7443091197253678821}
   mc: {fileID: 7443091197253678816}
+  bc: {fileID: 7443091197253678819}
   caneCollider: {fileID: 0}
   npcMask:
     serializedVersion: 2

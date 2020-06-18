@@ -10,6 +10,9 @@ public class PlayerController : MonoBehaviour
     bool isThrowingSmoke;
     bool isSwingingCane;
 
+    bool isCaught;
+    bool canUpdatePlayer;
+
     public float smokeCooldownLimit;
     public float caneCooldownLimit;
 
@@ -20,11 +23,15 @@ public class PlayerController : MonoBehaviour
 
     public MovementController mc;
 
+    public BoxCollider2D bc;
+
     public PolygonCollider2D caneCollider;
 
     Vector2 movement;
 
     ContactFilter2D guardFilter;
+
+    public int facingDir;
 
     public LayerMask npcMask;
     public LayerMask guardMask;
@@ -32,8 +39,11 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        facingDir = 0; // 0 - Down | 1 - Left | 2 - Up | 3 - Right
         isThrowingSmoke = false;
         isSwingingCane = false;
+        isCaught = false;
+        canUpdatePlayer = true;
         caneCollider = GetComponentInChildren<PolygonCollider2D>();
         guardFilter.layerMask = guardMask;
         guardFilter.useLayerMask = true;
@@ -42,37 +52,51 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update ()
     {
-        // Input handling
-        movement.x = Input.GetAxisRaw("Horizontal");
-        movement.y = Input.GetAxisRaw("Vertical");
-        isSprinting = Input.GetKey(KeyCode.LeftShift);
+        // Freezes the player if he get caughts by a guard
+        if (!isCaught)
+        {
+            // Input handling
+            movement.x = Input.GetAxisRaw("Horizontal");
+            movement.y = Input.GetAxisRaw("Vertical");
 
-        /* Check if player hasn't thrown smoke in the last X seconds (cooldown time), if he didn't, 
-        then he can throw a new one by pressing the button */
-        if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.G))
-        {
-            ThrowSmoke();
-            StartCoroutine(CooldownSmoke(smokeCooldownLimit));
-        }
-        else if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.H))
-        {
-            PlantSmoke();
-            StartCoroutine(CooldownSmoke(smokeCooldownLimit));
-        }
+            HandleDirection(movement);
 
-        /* Check if the player hasn't swung the cane in the last X seconds (cooldown time), if he didn't
-        then he can swing the cane again by pressing the button */
-        if (!isSwingingCane && Input.GetKeyDown(KeyCode.F))
-        {
-            SwingCane();
-            StartCoroutine(CooldownCane(caneCooldownLimit));
-        }
+            isSprinting = Input.GetKey(KeyCode.LeftShift);
 
-        /* If the player presses the key to interact with an NPC, check if that is possible through
-        the respective function */
-        if (Input.GetKeyDown(KeyCode.Space))
+            // Check if the player isn't being aprehended (touched) by a guard
+            isCaught = IsBeingAprehended();
+
+            /* Check if player hasn't thrown smoke in the last X seconds (cooldown time), if he didn't, 
+            then he can throw a new one by pressing the button */
+            if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.G))
+            {
+                ThrowSmoke();
+                StartCoroutine(CooldownSmoke(smokeCooldownLimit));
+            }
+            else if (!isThrowingSmoke && Input.GetKeyDown(KeyCode.H))
+            {
+                PlantSmoke();
+                StartCoroutine(CooldownSmoke(smokeCooldownLimit));
+            }
+
+            /* Check if the player hasn't swung the cane in the last X seconds (cooldown time), if he didn't
+            then he can swing the cane again by pressing the button */
+            if (!isSwingingCane && Input.GetKeyDown(KeyCode.F))
+            {
+                SwingCane();
+                StartCoroutine(CooldownCane(caneCooldownLimit));
+            }
+
+            /* If the player presses the key to interact with an NPC, check if that is possible through
+            the respective function */
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                InteractWithNPC();
+            }
+        }
+        else if (canUpdatePlayer)
         {
-            InteractWithNPC();
+            BeAprehended();
         }
     }
 
@@ -83,7 +107,8 @@ public class PlayerController : MonoBehaviour
             speed = 4.5f;
         else
             speed = 2.5f;
-        mc.PerformMove(rb, movement, speed);
+        if (!isCaught)
+            mc.PerformMove(rb, movement, speed);
     }
 
     void ThrowSmoke ()
@@ -133,7 +158,39 @@ public class PlayerController : MonoBehaviour
             }
         }
         
-    }    
+    }
+
+    bool IsBeingAprehended ()
+    {
+        if (bc.IsTouchingLayers(guardMask))
+        {
+            return true;
+        }
+        return false;
+    }
+    
+    void BeAprehended ()
+    {
+        Debug.Log("Game Over!");
+        canUpdatePlayer = false;
+    }
+
+    void HandleDirection (Vector2 movement)
+    {
+        if (movement.x != 0 && movement.y != 0)
+        {
+            if (movement.y > 0)
+                facingDir = 2;
+            else if (movement.y < 0)
+                facingDir = 0;
+
+            if (movement.x > 0)
+                facingDir = 3;
+            else if (movement.x < 0)
+                facingDir = 1;
+        }
+        
+    }
 
     IEnumerator CooldownSmoke (float cooldownTime)
     {
@@ -146,5 +203,10 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(cooldownTime);
         isSwingingCane = false;
         Debug.Log("Can swing again!");
+    }
+
+    public bool GotCaught ()
+    {
+        return isCaught;
     }
 }

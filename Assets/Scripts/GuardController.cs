@@ -12,6 +12,8 @@ public class GuardController : NPCController
 
     public GameObject player;
 
+    PlayerController pc;
+
     Vector2 guardOrigin;
     Quaternion guardRotationOrigin;
 
@@ -34,6 +36,7 @@ public class GuardController : NPCController
         isReturningToOrigin = false;
         isChasingPlayer = false;
         isStunned = false;
+        pc = player.GetComponent<PlayerController>();
     }
 
     // Update is called once per frame
@@ -58,7 +61,10 @@ public class GuardController : NPCController
                 {
                     isChasingPlayer = true;
                     isReturningToOrigin = false;
-                    ChasePlayer();
+
+                    // Stop chasing if the player already got caught
+                    if (!pc.GotCaught())
+                        ChasePlayer();
                 }
             }
             else if ((isChasingPlayer) && (distanceToPlayer >= maxChaseRange))
