@@ -25,9 +25,12 @@ public class NPCController : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        if (isCalmed)
+        {
+            anim.SetBool("isCalmed", true);
+        }
         movementIndex = 0;
         speed = 2f;
-        isCalmed = false;
     }
 
     // Update is called once per frame

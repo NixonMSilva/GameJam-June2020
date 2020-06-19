@@ -50,8 +50,17 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        calmedCount = 0;
         // Update the number of calmable NPCs
-        calmedCount = GameObject.FindGameObjectsWithTag("Smokable").Length;
+        GameObject[] smokable = GameObject.FindGameObjectsWithTag("Smokable");
+        foreach (GameObject npc in smokable)
+        {
+            if (!npc.GetComponent<NPCController>().IsCalmed())
+            {
+                calmedCount++;
+                Debug.Log("Calmable NPC found: " + npc.name);
+            }
+        }
         npcCounter.GetComponent<CounterNPC>().SetValue(calmedCount);
 
         // Initialize variables
