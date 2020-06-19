@@ -27,6 +27,7 @@ public class NPCController : MonoBehaviour
     {
         movementIndex = 0;
         speed = 2f;
+        isCalmed = false;
     }
 
     // Update is called once per frame

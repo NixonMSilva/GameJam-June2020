@@ -10,7 +10,7 @@ public class BombController : MonoBehaviour
 
     public float solidnessTimeout;
 
-    public Vector2 playerDirection;
+    public int playerDirection;
 
     Vector3 originalPos;
     Vector3 currentPos;
@@ -56,7 +56,7 @@ public class BombController : MonoBehaviour
 
     public void BombFly ()
     {
-        mc.PerformMoveNormalized(rb, playerDirection, bombSpeed);
+        mc.PerformMoveAnimationless(rb, playerDirection, bombSpeed);
     }
 
     void Explosion ()

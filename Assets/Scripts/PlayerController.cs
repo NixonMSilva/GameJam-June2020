@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,9 +14,18 @@ public class PlayerController : MonoBehaviour
 
     bool isCaught;
     bool canUpdatePlayer;
+    bool victoryController;
+
+    bool isTooltipShowable;
+
+    int calmedCount;
 
     public float smokeCooldownLimit;
     public float caneCooldownLimit;
+
+    public GameObject gameOverOverlay;
+    public GameObject uiOverlay;
+    public GameObject tooltipOverlay;
 
     public GameObject smokeBomb;
     GameObject currentSmokeBomb;
@@ -27,6 +38,8 @@ public class PlayerController : MonoBehaviour
 
     public PolygonCollider2D caneCollider;
 
+    public GameObject npcCounter;
+
     Vector2 movement;
 
     ContactFilter2D guardFilter;
@@ -37,9 +50,16 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        // Update the number of calmable NPCs
+        calmedCount = GameObject.FindGameObjectsWithTag("Smokable").Length;
+        npcCounter.GetComponent<CounterNPC>().SetValue(calmedCount);
+
+        // Initialize variables
+        isTooltipShowable = false;
         isThrowingSmoke = false;
         isSwingingCane = false;
         isCaught = false;
+        victoryController = false;
         canUpdatePlayer = true;
         caneCollider = GetComponentInChildren<PolygonCollider2D>();
         guardFilter.layerMask = guardMask;
@@ -49,6 +69,14 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update ()
     {
+        if (calmedCount <= 0)
+        {
+            WinGame();
+        }
+
+        // Check if you can show the tooltip
+        tooltipOverlay.SetActive(CanShowTooltip());
+
         // Freezes the player if he get caughts by a guard
         if (!isCaught)
         {
@@ -106,12 +134,24 @@ public class PlayerController : MonoBehaviour
             mc.PerformMove(rb, movement, speed);
     }
 
+    bool CanShowTooltip ()
+    {
+        RaycastHit2D rc = Physics2D.CircleCast((Vector2)transform.position, 2f, Vector2.zero, 2f, npcMask);
+        if (rc)
+        {
+            NPCController npcc = rc.collider.gameObject.GetComponent<NPCController>();
+            if (!npcc.isCalmed && npcc.isInteractable)
+                return true;
+        }
+        return false;            
+    }
+
     void ThrowSmoke ()
     {
         float playerRotation = rb.gameObject.transform.rotation.eulerAngles.z;
         Vector2 direction = new Vector2 (Mathf.Cos(playerRotation * Mathf.Deg2Rad), Mathf.Sin(playerRotation * Mathf.Deg2Rad));
         currentSmokeBomb = Instantiate(smokeBomb, transform.position, transform.rotation);
-        currentSmokeBomb.GetComponent<BombController>().playerDirection = direction;
+        currentSmokeBomb.GetComponent<BombController>().playerDirection = this.GetComponent<MovementController>().currentOrientation;
         isThrowingSmoke = true;
     }
 
@@ -149,15 +189,21 @@ public class PlayerController : MonoBehaviour
             NPCController npcc = rc.collider.gameObject.GetComponent<NPCController>();
             if (npcc.IsInteractable())
             {
-                npcc.CalmDown();
+                if (!npcc.IsCalmed())
+                {
+                    isTooltipShowable = false;
+                    npcc.CalmDown();
+                    calmedCount--;
+                    npcCounter.GetComponent<CounterNPC>().SetValue(calmedCount);
+                }
             }
         }
-        
     }
 
     bool IsBeingAprehended ()
     {
-        if (bc.IsTouchingLayers(guardMask))
+        // Do not aprehend player if victory is fulfilled
+        if ((bc.IsTouchingLayers(guardMask)) && (!victoryController))
         {
             return true;
         }
@@ -168,6 +214,7 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Game Over!");
         canUpdatePlayer = false;
+        gameOverOverlay.SetActive(true);
     }
 
     IEnumerator CooldownSmoke (float cooldownTime)
@@ -183,8 +230,25 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Can swing again!");
     }
 
+    public void RestartGame ()
+    {
+        SceneManager.LoadScene("Controls");
+    }
+
     public bool GotCaught ()
     {
         return isCaught;
+    }
+
+    void SpawnNewGuard ()
+    {
+
+    }
+
+    void WinGame ()
+    {
+        victoryController = true;
+        Debug.Log("Victory!");
+        SceneManager.LoadScene("Victory");
     }
 }

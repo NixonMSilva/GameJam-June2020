@@ -42,6 +42,37 @@ public class MovementController : MonoBehaviour
         PerformMove(rb, movementVector, speed);
     }
 
+    public void PerformMoveAnimationless (Rigidbody2D rb, int playerOrientation, float speed)
+    {
+        Vector2 movementVector;
+        if (playerOrientation == 0)
+        {
+            movementVector.x = 0f;
+            movementVector.y = -1f;
+        }
+        else if (playerOrientation == 1)
+        {
+            movementVector.x = -1f;
+            movementVector.y = 0f;
+        }
+        else if (playerOrientation == 2)
+        {
+            movementVector.x = 0f;
+            movementVector.y = 1f;
+        }
+        else if (playerOrientation == 3)
+        {
+            movementVector.x = 1f;
+            movementVector.y = 0f;
+        }
+        else
+        {
+            movementVector = Vector2.zero;
+        }
+        
+        rb.MovePosition(rb.position + movementVector * speed * Time.fixedDeltaTime);
+    }
+
     public void AdjustSpriteOrientation (Vector2 movementVector)
     {
         if (movementVector.x != 0 || movementVector.y != 0)
